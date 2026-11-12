@@ -179,7 +179,8 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
     <label class="fld">🌤️ Tarde <input id="c-t" type="number" inputmode="decimal" min="0.5" max="24" step="0.5"></label>
     <label class="fld">🌙 Noite <input id="c-n" type="number" inputmode="decimal" min="0.5" max="24" step="0.5"></label>
     <div class="st">Valores em reais</div>
-    <label class="fld">Desconto por turno <input id="c-d" type="number" inputmode="decimal" min="0" step="0.01"></label>
+    <label class="fld">Desconto app <input id="c-da" type="number" inputmode="decimal" min="0" step="0.01"></label>
+    <label class="fld">Desconto passagem <small style="color:var(--muted);font-size:11px">(menos domingo)</small> <input id="c-dp" type="number" inputmode="decimal" min="0" step="0.01"></label>
     <label class="fld">Valor da hora <input id="c-r" type="number" inputmode="decimal" min="0" step="0.01"></label>
     <p class="note">As mudanças valem só para os turnos que você marcar de agora em diante. Os turnos que já estão marcados ficam como estão.</p>
     <div class="err" id="cerr"></div>
@@ -197,7 +198,7 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
   var KEY="semana:v1",HK="semana:hrs:v1",SK="semana:snap:v2",CK="semana:cfg:v1",DK="semana:dot:v1",NK="semana:note:v1",LK="semana:lock:v1",AK="semana:addr:v1";
   var BEFORE=12,WEEKS=52,N=WEEKS*7;
   var memory={},snap={},dots={},notes={},locks={},addrs={},cur=null;
-  var cfg={h:{m:7,t:7,n:7},d:13.5,r:15.75};
+  var cfg={h:{m:7,t:7,n:7},da:13.5,dp:0,r:15.75};
   var scA=document.getElementById("sc-a"),scB=document.getElementById("sc-b"),trackA=document.getElementById("track-a"),trackB=document.getElementById("track-b");
   var root=document.querySelector("main");
 
@@ -209,7 +210,7 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
   function loadAll(){
     memory=jget(KEY,{})||{};
     var c=jget(CK,null);
-    if(c&&c.h){cfg={h:{m:num(c.h.m,7),t:num(c.h.t,7),n:num(c.h.n,7)},d:num(c.d,13.5),r:num(c.r,15.75)};}
+    if(c&&c.h){cfg={h:{m:num(c.h.m,7),t:num(c.h.t,7),n:num(c.h.n,7)},da:num(c.da,num(c.d,13.5)),dp:num(c.dp,0),r:num(c.r,15.75)};}
     snap=jget(SK,{})||{};
     dots=jget(DK,{})||{};
     notes=jget(NK,{})||{};
@@ -233,7 +234,8 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
   var START=new Date(cw.getFullYear(),cw.getMonth(),cw.getDate()-BEFORE*7);
   function dateAt(i){return new Date(START.getFullYear(),START.getMonth(),START.getDate()+i);}
 
-  function vals(key,k){return snap[key+"|"+k]||[cfg.h[k],cfg.d,cfg.r];}
+  function vals(key,k){return snap[key+"|"+k]||[cfg.h[k],discFor(key),cfg.r];}
+  function discFor(key){var p=key.replace("b:","").split("-");var dt=new Date(+p[0],+p[1]-1,+p[2]);return dt.getDay()===0?cfg.da:cfg.da+cfg.dp;}
   function calc(v){return v[0]*v[2]-v[1];}
   function fmt(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
   function fh(h){return String(h).replace(".",",");}
@@ -306,7 +308,7 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
     return money;
   }
   function updateHint(){
-    document.getElementById("hint").textContent="Deslize cada opção para os lados, separadamente, e pare onde quiser. Os totais contam os 7 dias que aparecem na tela. Valor da hora: "+fmt(cfg.r)+". Desconto por turno: "+fmt(cfg.d)+". Horas padrão: manhã "+fh(cfg.h.m)+"h, tarde "+fh(cfg.h.t)+"h, noite "+fh(cfg.h.n)+"h. Segure um turno para mudar as horas dele.";
+    document.getElementById("hint").textContent="Deslize cada opção para os lados, separadamente, e pare onde quiser. Os totais contam os 7 dias que aparecem na tela. Valor da hora: "+fmt(cfg.r)+". Desconto por turno: "+fmt(cfg.da)+" + passagem "+fmt(cfg.dp)+". Horas padrão: manhã "+fh(cfg.h.m)+"h, tarde "+fh(cfg.h.t)+"h, noite "+fh(cfg.h.n)+"h. Segure um turno para mudar as horas dele.";
   }
   var raf=0;
   function schedule(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;updateSums();});}
@@ -335,7 +337,7 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
     var s=memory[key]||[],ix=s.indexOf(k),sk=key+"|"+k;
     if(ix>-1&&locks[sk]){showNote(key,k);return;}
     if(ix>-1){s.splice(ix,1);delete snap[sk];delete dots[sk];delete notes[sk];delete addrs[sk];jset(DK,dots);jset(NK,notes);jset(AK,addrs);}
-    else{s.push(k);snap[sk]=[cfg.h[k],cfg.d,cfg.r];}
+    else{s.push(k);snap[sk]=[cfg.h[k],discFor(key),cfg.r];}
     if(s.length)memory[key]=s;else delete memory[key];
     saveMem();saveSnap();paintKey(key);updateSums();
   }
@@ -404,12 +406,13 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
   };
 
   /* página de padrões */
-  var cids=["c-m","c-t","c-n","c-d","c-r"];
+  var cids=["c-m","c-t","c-n","c-da","c-dp","c-r"];
   function openCfg(){
     document.getElementById("c-m").value=cfg.h.m;
     document.getElementById("c-t").value=cfg.h.t;
     document.getElementById("c-n").value=cfg.h.n;
-    document.getElementById("c-d").value=cfg.d;
+    document.getElementById("c-da").value=cfg.da;
+    document.getElementById("c-dp").value=cfg.dp;
     document.getElementById("c-r").value=cfg.r;
     document.getElementById("cerr").textContent="";
     document.getElementById("cfgpage").hidden=false;
@@ -421,9 +424,9 @@ h1{font-size:20px;margin:0;letter-spacing:.2px}
   document.getElementById("csave").onclick=function(){
     var v=cids.map(function(id){return parseN(document.getElementById(id).value);});
     var okH=[v[0],v[1],v[2]].every(function(x){return x>0&&x<=24;});
-    var okV=v[3]>=0&&v[4]>=0&&isFinite(v[3])&&isFinite(v[4]);
+    var okV=[v[3],v[4],v[5]].every(function(x){return isFinite(x)&&x>=0;});
     if(!okH||!okV){document.getElementById("cerr").textContent="Confira os valores: horas entre 0,5 e 24, e reais sem números negativos.";return;}
-    cfg={h:{m:v[0],t:v[1],n:v[2]},d:v[3],r:v[4]};
+    cfg={h:{m:v[0],t:v[1],n:v[2]},da:v[3],dp:v[4],r:v[5]};
     jset(CK,cfg);
     updateHint();closeCfg();
   };
