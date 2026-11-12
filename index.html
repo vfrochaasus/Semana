@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minha semana</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f3f6f4; --surface:#ffffff; --ink:#14221c; --muted:#5d6b64; --line:#d5ded9;
+  --m:#f2b134; --t:#e8743b; --n:#3d4fa8; --on:#ffffff; --today:#0f6b4f;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1713; --surface:#18231d; --ink:#e8f1ec; --muted:#93a39a; --line:#2b3a32;
+    --m:#e9ad2e; --t:#f08a55; --n:#7b8cf0; --on:#101010; --today:#4fd1a1; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1713; --surface:#18231d; --ink:#e8f1ec; --muted:#93a39a; --line:#2b3a32;
+  --m:#e9ad2e; --t:#f08a55; --n:#7b8cf0; --on:#101010; --today:#4fd1a1; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;min-height:100vh}
+main{max-width:560px;margin:0 auto;padding:16px 8px 32px}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 6px 14px}
+h1{font-size:20px;margin:0;letter-spacing:.2px}
+.nav{display:flex;gap:6px}
+.nav button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;min-width:40px;height:40px;font-size:15px;cursor:pointer}
+.nav button.hoje{padding:0 12px;font-size:13px}
+.pt{font-size:15px;margin:20px 6px 8px}
+.rg{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+.sc{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding-bottom:8px;scrollbar-width:thin}
+.track{display:flex;gap:5px;position:relative}
+.col{flex:0 0 calc((100% - 30px)/7);min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 3px;display:flex;flex-direction:column;gap:5px}
+.col.today{border-color:var(--today);box-shadow:0 0 0 1px var(--today)}
+.dh{text-align:center;padding:2px 0 4px;border-bottom:1px solid var(--line)}
+.dn{font-size:12px;font-weight:700}
+.dd{font-size:11px;color:var(--muted);white-space:nowrap}
+.col.today .dn{color:var(--today)}
+.opt{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;height:56px;font:inherit;font-size:11px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.opt span{font-size:15px;line-height:1}
+.opt:focus-visible{outline:2px solid var(--today);outline-offset:1px}
+.opt.on{color:var(--on);border-color:transparent;font-weight:700}
+.opt[data-p="m"].on{background:var(--m)}
+.opt[data-p="t"].on{background:var(--t)}
+.opt[data-p="n"].on{background:var(--n);color:#fff}
+.h{font-size:10px;opacity:.95;font-weight:700}
+.legend{display:flex;justify-content:center;gap:14px;font-size:12px;color:var(--muted);margin:14px 0 4px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.sum{margin:10px 6px 0;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:6px;text-align:center}
+.sum b{display:block;font-size:20px}
+.sum small{color:var(--muted);font-size:11px}
+.sum2{margin:6px 6px 0;padding:8px 12px;border-radius:10px;border:1px solid var(--today);background:color-mix(in srgb,var(--today) 10%,transparent);color:var(--today);font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sum2 b{font-size:15px;white-space:nowrap}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin:14px 10px 0;line-height:1.4}
+.rec{margin:8px 6px 0;padding:8px 12px;border:1px solid var(--today);border-radius:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--today);font-size:13px;font-weight:700}
+.rec b{font-size:16px}
+.rec small{display:block;font-size:10px;font-weight:400;opacity:.85}
+.addrview{display:flex;align-items:center;gap:10px;margin-top:8px}
+.addrview[hidden]{display:none}
+.addrlink{flex:1;min-width:0;color:var(--today);font-weight:700;font-size:15px;text-decoration:underline;word-break:break-word;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+.sec2{height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.nvaddr{display:block;margin-top:12px}
+.nvaddr[hidden]{display:none}
+.nv-sub{font-size:12px;color:var(--muted);margin-bottom:8px}
+.nv-t{font-size:20px;font-weight:700;margin-bottom:8px;word-break:break-word}
+.nv-x{font-size:15px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.note-in{width:100%;margin-top:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:15px;padding:10px;resize:vertical}
+.lk{position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#000;border:2px solid #fff}
+.opt{position:relative}
+.dot{position:absolute;top:3px;right:3px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #fff}
+.chk{display:flex;align-items:center;gap:12px;font-size:15px;margin:0 0 4px;cursor:pointer}
+.chk input{width:24px;height:24px;flex:0 0 24px;accent-color:#22c55e}
+.chk small{display:block;color:var(--muted);font-size:11px}
+.clears{display:flex;justify-content:center;gap:22px;margin-top:6px}
+.clears .clear{margin:8px 0 0}
+.clear{display:block;margin:14px auto 0;background:none;border:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+.ov[hidden]{display:none}
+.card{background:var(--surface);color:var(--ink);border-radius:16px;padding:18px;width:100%;max-width:340px;max-height:92vh;overflow:auto;border:1px solid var(--line)}
+.mt{font-size:15px;font-weight:700;margin-bottom:14px}
+.step{display:grid;grid-template-columns:52px 1fr 52px;gap:8px}
+.step button{height:48px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:22px;cursor:pointer}
+.step input,.fld input{height:48px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:20px;text-align:center;width:100%;min-width:0}
+.hv{font-size:14px;color:var(--muted);text-align:center;margin:12px 0 16px}
+.acts{display:flex;gap:8px;margin-top:14px}
+.acts button{flex:1;height:44px;border-radius:10px;border:none;background:var(--today);color:var(--on);font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.acts button.sec{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:400}
+.st{font-size:12px;color:var(--muted);margin:16px 0 4px}
+.fld{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0;font-size:15px}
+.fld input{width:120px;height:44px}
+.note{font-size:12px;color:var(--muted);line-height:1.4;margin:14px 0 0}
+.err{font-size:13px;color:#d64545;margin-top:10px;min-height:16px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Minha semana</h1>
+    <div class="nav">
+      <button id="cfgbtn" aria-label="Padrões de horas e desconto">⚙️</button>
+      <button id="prev" aria-label="7 dias para trás">◀</button>
+      <button id="hoje" class="hoje">Hoje</button>
+      <button id="next" aria-label="7 dias para frente">▶</button>
+    </div>
+  </header>
+
+  <h2 class="pt">Opção A <span class="rg" id="rg-a"></span></h2>
+  <div class="sc" id="sc-a"><div class="track" id="track-a"></div></div>
+  <div class="sum" id="sum-a"></div>
+  
+  <div class="sum2" id="sum2-a"></div>
+  <h2 class="pt">Opção B <span class="rg" id="rg-b"></span></h2>
+  <div class="sc" id="sc-b"><div class="track" id="track-b"></div></div>
+  <div class="sum" id="sum-b"></div>
+  
+  <div class="sum2" id="sum2-b"></div>
+
+  <div class="legend">
+    <span><i style="background:var(--m)"></i>Manhã</span>
+    <span><i style="background:var(--t)"></i>Tarde</span>
+    <span><i style="background:var(--n)"></i>Noite</span>
+  </div>
+
+  <p class="hint" id="hint" hidden></p>
+  <div class="clears">
+    <button class="clear" id="clear-a">Limpar Opção A</button>
+    <button class="clear" id="clear-b">Limpar Opção B</button>
+  </div>
+  
+</main>
+
+<div class="ov" id="modal" hidden>
+  <div class="card">
+    <div class="mt" id="mt"></div>
+    <div class="step"><button id="hmin" aria-label="Menos uma hora">−</button><input id="hin" type="number" inputmode="decimal" min="1" max="24" step="0.5"><button id="hplus" aria-label="Mais uma hora">+</button></div>
+    <div class="hv" id="hval"></div>
+    <label class="chk"><input type="checkbox" id="hdot"><span>Selecionar<small>Mostra uma bolinha verde no canto do turno</small></span></label>
+    <label class="chk"><input type="checkbox" id="hlock"><span>Cadeado 🔒<small>Trava o turno: não desmarca nem limpa</small></span></label>
+    <input id="htitle" class="note-in" type="text" maxlength="60" placeholder="Título da anotação" style="font-weight:700;font-size:17px">
+    <textarea id="hnote" class="note-in" rows="3" maxlength="500" placeholder="Anotação deste turno"></textarea>
+    <div class="addr">
+      <input id="haddr" class="note-in" type="text" maxlength="200" placeholder="Endereço">
+      <div class="addrview" id="addrview" hidden>
+        <a id="haddrlink" class="addrlink" href="#" target="_blank" rel="noopener noreferrer">📍 <span id="haddrtxt"></span></a>
+        <button type="button" id="haddredit" class="sec2">Editar</button>
+      </div>
+    </div>
+    <div class="acts"><button id="hcancel" class="sec">Cancelar</button><button id="hsave">Salvar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="nview" hidden>
+  <div class="card">
+    <div class="nv-sub" id="nv-sub"></div>
+    <div class="nv-t" id="nv-t"></div>
+    <div class="nv-x" id="nv-x"></div>
+    <a id="nv-addr" class="addrlink nvaddr" href="#" target="_blank" rel="noopener noreferrer" hidden>📍 <span id="nv-addrtxt"></span></a>
+    <div class="acts"><button id="nv-close">Fechar</button></div>
+  </div>
+</div>
+
+<div class="ov" id="cfgpage" hidden>
+  <div class="card">
+    <div class="mt">Padrões</div>
+    <div class="st">Horas padrão de cada turno</div>
+    <label class="fld">☀️ Manhã <input id="c-m" type="number" inputmode="decimal" min="0.5" max="24" step="0.5"></label>
+    <label class="fld">🌤️ Tarde <input id="c-t" type="number" inputmode="decimal" min="0.5" max="24" step="0.5"></label>
+    <label class="fld">🌙 Noite <input id="c-n" type="number" inputmode="decimal" min="0.5" max="24" step="0.5"></label>
+    <div class="st">Valores em reais</div>
+    <label class="fld">Desconto por turno <input id="c-d" type="number" inputmode="decimal" min="0" step="0.01"></label>
+    <label class="fld">Valor da hora <input id="c-r" type="number" inputmode="decimal" min="0" step="0.01"></label>
+    <p class="note">As mudanças valem só para os turnos que você marcar de agora em diante. Os turnos que já estão marcados ficam como estão.</p>
+    <div class="err" id="cerr"></div>
+    <div class="acts"><button id="ccancel" class="sec">Cancelar</button><button id="csave">Salvar</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var DIAS=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+  var MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+  var NOMES={m:"Manhã",t:"Tarde",n:"Noite"};
+  var ICON={m:"☀️",t:"🌤️",n:"🌙"};
+  var PK=["m","t","n"];
+  var KEY="semana:v1",HK="semana:hrs:v1",SK="semana:snap:v2",CK="semana:cfg:v1",DK="semana:dot:v1",NK="semana:note:v1",LK="semana:lock:v1",AK="semana:addr:v1";
+  var BEFORE=12,WEEKS=52,N=WEEKS*7;
+  var memory={},snap={},dots={},notes={},locks={},addrs={},cur=null;
+  var cfg={h:{m:7,t:7,n:7},d:13.5,r:15.75};
+  var scA=document.getElementById("sc-a"),scB=document.getElementById("sc-b"),trackA=document.getElementById("track-a"),trackB=document.getElementById("track-b");
+  var root=document.querySelector("main");
+
+  function jget(k,def){try{var r=localStorage.getItem(k);return r?JSON.parse(r):def;}catch(e){return def;}}
+  function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  function num(x,def){return typeof x==="number"&&isFinite(x)?x:def;}
+  function parseN(v){return parseFloat(String(v).replace(",","."));}
+
+  function loadAll(){
+    memory=jget(KEY,{})||{};
+    var c=jget(CK,null);
+    if(c&&c.h){cfg={h:{m:num(c.h.m,7),t:num(c.h.t,7),n:num(c.h.n,7)},d:num(c.d,13.5),r:num(c.r,15.75)};}
+    snap=jget(SK,{})||{};
+    dots=jget(DK,{})||{};
+    notes=jget(NK,{})||{};
+    locks=jget(LK,{})||{};
+    addrs=jget(AK,{})||{};
+    /* turnos já marcados antes desta versão ficam congelados com os valores que tinham */
+    var oldH=jget(HK,{})||{},changed=false;
+    Object.keys(memory).forEach(function(key){
+      (memory[key]||[]).forEach(function(k){
+        var sk=key+"|"+k;
+        if(!snap[sk]){snap[sk]=[num(oldH[sk],7),13.5,15.75];changed=true;}
+      });
+    });
+    if(changed)jset(SK,snap);
+  }
+  function saveMem(){jset(KEY,memory);}
+  function saveSnap(){jset(SK,snap);}
+
+  function iso(d){var m=d.getMonth()+1,dd=d.getDate();return d.getFullYear()+"-"+(m<10?"0"+m:m)+"-"+(dd<10?"0"+dd:dd);}
+  var cw=new Date();cw=new Date(cw.getFullYear(),cw.getMonth(),cw.getDate());cw.setDate(cw.getDate()-cw.getDay());
+  var START=new Date(cw.getFullYear(),cw.getMonth(),cw.getDate()-BEFORE*7);
+  function dateAt(i){return new Date(START.getFullYear(),START.getMonth(),START.getDate()+i);}
+
+  function vals(key,k){return snap[key+"|"+k]||[cfg.h[k],cfg.d,cfg.r];}
+  function calc(v){return v[0]*v[2]-v[1];}
+  function fmt(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
+  function fh(h){return String(h).replace(".",",");}
+
+  function btns(key){
+    return PK.map(function(k){return '<button class="opt" data-key="'+key+'" data-p="'+k+'"></button>';}).join("");
+  }
+  function build(){
+    var todayIso=iso(new Date()),html="",htmlB="";
+    for(var i=0;i<N;i++){
+      var d=dateAt(i),id=iso(d);
+      var head='<div class="col'+(id===todayIso?" today":"")+'"><div class="dh"><div class="dn">'+DIAS[d.getDay()]+'</div><div class="dd">'+(d.getDate()===1?"1 "+MESES[d.getMonth()]:d.getDate())+'</div></div>';
+      html+=head+btns(id)+'</div>';
+      htmlB+=head+btns("b:"+id)+'</div>';
+    }
+    trackA.innerHTML=html;trackB.innerHTML=htmlB;
+  }
+  function paintBtn(b){
+    var key=b.getAttribute("data-key"),k=b.getAttribute("data-p");
+    var on=(memory[key]||[]).indexOf(k)>-1;
+    b.className="opt"+(on?" on":"");
+    b.setAttribute("aria-pressed",on?"true":"false");
+    b.innerHTML="<span>"+ICON[k]+"</span>"+NOMES[k]+(on?'<small class="h">'+fh(vals(key,k)[0])+'h</small>':"")+(on&&dots[key+"|"+k]?'<i class="dot"></i>':"")+(on&&locks[key+"|"+k]?'<i class="lk"></i>':"");
+  }
+  function paintAll(){var all=document.querySelectorAll(".opt");for(var i=0;i<all.length;i++)paintBtn(all[i]);}
+  function paintKey(key){
+    PK.forEach(function(k){
+      var b=document.querySelector('.opt[data-key="'+key+'"][data-p="'+k+'"]');
+      if(b)paintBtn(b);
+    });
+  }
+
+  function stepW(){var c=trackA.children;return c.length>1?(c[1].offsetLeft-c[0].offsetLeft)||1:1;}
+  function firstIdx(s){var i=Math.round(s.scrollLeft/stepW());return Math.max(0,Math.min(N-7,i));}
+  function planSum(pre,idx){
+    var turnos=0,h=0,money=0;
+    for(var j=0;j<7;j++){
+      var key=pre+iso(dateAt(idx+j)),s=memory[key]||[];
+      s.forEach(function(k){var v=vals(key,k);turnos++;h+=v[0];money+=calc(v);});
+    }
+    return {turnos:turnos,h:h,money:money};
+  }
+  function sumHtml(r){
+    return '<div><b>'+r.turnos+'</b><small>turnos</small></div>'
+      +'<div><b>'+fh(r.h)+'h</b><small>horas</small></div>'
+      +'<div><b>'+fmt(r.money)+'</b><small>total da semana</small></div>';
+  }
+  function recHtml(pre){
+    var t=new Date(),sun=new Date(t.getFullYear(),t.getMonth(),t.getDate()-t.getDay()),money=0;
+    for(var j=0;j<6;j++){
+      var key=pre+iso(new Date(sun.getFullYear(),sun.getMonth(),sun.getDate()+j));
+      (memory[key]||[]).forEach(function(k){if(j===5&&k!=="m")return;money+=calc(vals(key,k));});
+    }
+    return '<div>A receber<small>domingo a sexta de manhã, semana atual</small></div><b>'+fmt(money)+'</b>';
+  }
+  function updateSums(){
+    [["a","",scA],["b","b:",scB]].forEach(function(p){
+      var idx=firstIdx(p[2]),a=dateAt(idx),b=dateAt(idx+6);
+      document.getElementById("rg-"+p[0]).textContent=a.getDate()+" "+MESES[a.getMonth()]+" – "+b.getDate()+" "+MESES[b.getMonth()];
+      document.getElementById("sum-"+p[0]).innerHTML=sumHtml(planSum(p[1],idx));
+      document.getElementById("sum2-"+p[0]).innerHTML='<span>Domingo até sexta de manhã · semana atual</span><b>'+fmt(weekMoney(p[1]))+'</b>';
+    });
+  }
+  function weekMoney(pre){
+    var t=new Date(),sun=new Date(t.getFullYear(),t.getMonth(),t.getDate()-t.getDay()),money=0;
+    for(var j=0;j<6;j++){
+      var d=new Date(sun.getFullYear(),sun.getMonth(),sun.getDate()+j),key=pre+iso(d);
+      (memory[key]||[]).forEach(function(k){if(j===5&&k!=="m")return;money+=calc(vals(key,k));});
+    }
+    return money;
+  }
+  function updateHint(){
+    document.getElementById("hint").textContent="Deslize cada opção para os lados, separadamente, e pare onde quiser. Os totais contam os 7 dias que aparecem na tela. Valor da hora: "+fmt(cfg.r)+". Desconto por turno: "+fmt(cfg.d)+". Horas padrão: manhã "+fh(cfg.h.m)+"h, tarde "+fh(cfg.h.t)+"h, noite "+fh(cfg.h.n)+"h. Segure um turno para mudar as horas dele.";
+  }
+  var raf=0;
+  function schedule(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;updateSums();});}
+
+  function mapsUrl(a){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a);}
+  function setAddr(a){
+    var inp=document.getElementById("haddr"),view=document.getElementById("addrview");
+    inp.value=a;
+    if(a){document.getElementById("haddrtxt").textContent=a;document.getElementById("haddrlink").href=mapsUrl(a);view.hidden=false;inp.hidden=true;}
+    else{view.hidden=true;inp.hidden=false;}
+  }
+  document.getElementById("haddredit").onclick=function(){var inp=document.getElementById("haddr");document.getElementById("addrview").hidden=true;inp.hidden=false;inp.focus();};
+  function noteOf(sk){var n=notes[sk];if(!n)return {t:"",x:""};if(typeof n==="string")return {t:"",x:n};return {t:n.t||"",x:n.x||""};}
+  function showNote(key,k){
+    var sk=key+"|"+k,n=noteOf(sk),date=key.replace("b:",""),p=date.split("-"),dt=new Date(+p[0],+p[1]-1,+p[2]);
+    document.getElementById("nv-sub").textContent=DIAS[dt.getDay()]+" "+dt.getDate()+" · "+NOMES[k]+(key.indexOf("b:")===0?" · Opção B":" · Opção A");
+    var t=document.getElementById("nv-t"),x=document.getElementById("nv-x");
+    t.textContent=n.t;t.hidden=!n.t;
+    var ad=addrs[sk]||"";x.textContent=n.x||((n.t||ad)?"":"Sem anotação neste turno. Segure o turno para escrever.");
+    x.hidden=!x.textContent;var al=document.getElementById("nv-addr");if(ad){document.getElementById("nv-addrtxt").textContent=ad;al.href=mapsUrl(ad);al.hidden=false;}else al.hidden=true;
+    document.getElementById("nview").hidden=false;
+  }
+  document.getElementById("nv-close").onclick=function(){document.getElementById("nview").hidden=true;};
+  document.getElementById("nview").addEventListener("click",function(e){if(e.target===this)this.hidden=true;});
+  function toggle(key,k){
+    var s=memory[key]||[],ix=s.indexOf(k),sk=key+"|"+k;
+    if(ix>-1&&locks[sk]){showNote(key,k);return;}
+    if(ix>-1){s.splice(ix,1);delete snap[sk];delete dots[sk];delete notes[sk];delete addrs[sk];jset(DK,dots);jset(NK,notes);jset(AK,addrs);}
+    else{s.push(k);snap[sk]=[cfg.h[k],cfg.d,cfg.r];}
+    if(s.length)memory[key]=s;else delete memory[key];
+    saveMem();saveSnap();paintKey(key);updateSums();
+  }
+
+  /* toque curto marca, toque longo muda as horas do turno */
+  var timer=null,fired=false;
+  function stop(){clearTimeout(timer);}
+  root.addEventListener("pointerdown",function(e){
+    var b=e.target.closest?e.target.closest(".opt"):null;
+    fired=false;stop();
+    if(!b)return;
+    timer=setTimeout(function(){fired=true;openEdit(b.getAttribute("data-key"),b.getAttribute("data-p"));},500);
+  });
+  root.addEventListener("pointerup",stop);
+  root.addEventListener("pointercancel",stop);
+  root.addEventListener("contextmenu",function(e){if(e.target.closest&&e.target.closest(".opt"))e.preventDefault();});
+  root.addEventListener("click",function(e){
+    var b=e.target.closest?e.target.closest(".opt"):null;
+    if(!b)return;
+    if(fired){fired=false;return;}
+    toggle(b.getAttribute("data-key"),b.getAttribute("data-p"));
+  });
+  [scA,scB].forEach(function(s){s.addEventListener("scroll",function(){stop();schedule();});});
+
+  /* janela de horas de um turno */
+  function openEdit(key,k){
+    cur={key:key,k:k};
+    var date=key.replace("b:",""),p=date.split("-");
+    var dt=new Date(+p[0],+p[1]-1,+p[2]);
+    document.getElementById("mt").textContent=DIAS[dt.getDay()]+" "+dt.getDate()+" · "+NOMES[k]+(key.indexOf("b:")===0?" · Opção B":" · Opção A");
+    document.getElementById("hin").value=vals(key,k)[0];
+    document.getElementById("hdot").checked=!!dots[key+"|"+k];
+    document.getElementById("hlock").checked=!!locks[key+"|"+k];
+    var nn=noteOf(key+"|"+k);document.getElementById("hnote").value=nn.x;document.getElementById("htitle").value=nn.t;
+    setAddr(addrs[key+"|"+k]||"");
+    upd();
+    document.getElementById("modal").hidden=false;
+  }
+  function closeEdit(){document.getElementById("modal").hidden=true;cur=null;}
+  function upd(){
+    var h=parseN(document.getElementById("hin").value);
+    if(!cur||!(h>0)){document.getElementById("hval").textContent="Digite as horas";return;}
+    var v=vals(cur.key,cur.k);
+    document.getElementById("hval").textContent=fh(h)+"h × "+fmt(v[2])+" − "+fmt(v[1])+" = "+fmt(calc([h,v[1],v[2]]));
+  }
+  var hin=document.getElementById("hin");
+  document.getElementById("hmin").onclick=function(){hin.value=Math.max(0.5,(parseN(hin.value)||7)-1);upd();};
+  document.getElementById("hplus").onclick=function(){hin.value=Math.min(24,(parseN(hin.value)||7)+1);upd();};
+  hin.addEventListener("input",upd);
+  document.getElementById("hcancel").onclick=closeEdit;
+  document.getElementById("modal").addEventListener("click",function(e){if(e.target===this)closeEdit();});
+  document.getElementById("hsave").onclick=function(){
+    var h=parseN(hin.value);
+    if(!(h>0&&h<=24)||!cur)return;
+    var key=cur.key,k=cur.k,sk=key+"|"+k;
+    var v=vals(key,k);
+    snap[sk]=[h,v[1],v[2]];
+    if(document.getElementById("hdot").checked)dots[sk]=true;else delete dots[sk];
+    if(document.getElementById("hlock").checked)locks[sk]=true;else delete locks[sk];
+    var nt=document.getElementById("hnote").value.trim(),ntt=document.getElementById("htitle").value.trim();if(nt||ntt)notes[sk]={t:ntt,x:nt};else delete notes[sk];
+    jset(LK,locks);jset(NK,notes);
+    var ad=document.getElementById("haddr").value.trim();if(ad)addrs[sk]=ad;else delete addrs[sk];jset(AK,addrs);
+    jset(DK,dots);
+    var s=memory[key]||[];if(s.indexOf(k)<0)s.push(k);memory[key]=s;
+    saveMem();saveSnap();closeEdit();paintKey(key);updateSums();
+  };
+
+  /* página de padrões */
+  var cids=["c-m","c-t","c-n","c-d","c-r"];
+  function openCfg(){
+    document.getElementById("c-m").value=cfg.h.m;
+    document.getElementById("c-t").value=cfg.h.t;
+    document.getElementById("c-n").value=cfg.h.n;
+    document.getElementById("c-d").value=cfg.d;
+    document.getElementById("c-r").value=cfg.r;
+    document.getElementById("cerr").textContent="";
+    document.getElementById("cfgpage").hidden=false;
+  }
+  function closeCfg(){document.getElementById("cfgpage").hidden=true;}
+  document.getElementById("cfgbtn").onclick=openCfg;
+  document.getElementById("ccancel").onclick=closeCfg;
+  document.getElementById("cfgpage").addEventListener("click",function(e){if(e.target===this)closeCfg();});
+  document.getElementById("csave").onclick=function(){
+    var v=cids.map(function(id){return parseN(document.getElementById(id).value);});
+    var okH=[v[0],v[1],v[2]].every(function(x){return x>0&&x<=24;});
+    var okV=v[3]>=0&&v[4]>=0&&isFinite(v[3])&&isFinite(v[4]);
+    if(!okH||!okV){document.getElementById("cerr").textContent="Confira os valores: horas entre 0,5 e 24, e reais sem números negativos.";return;}
+    cfg={h:{m:v[0],t:v[1],n:v[2]},d:v[3],r:v[4]};
+    jset(CK,cfg);
+    updateHint();closeCfg();
+  };
+
+  /* navegação */
+  function goTo(idx,smooth,s){
+    idx=Math.max(0,Math.min(N-7,idx));
+    s.scrollTo({left:idx*stepW(),behavior:smooth?"smooth":"auto"});
+  }
+  document.getElementById("prev").addEventListener("click",function(){[scA,scB].forEach(function(s){goTo(firstIdx(s)-7,true,s);});});
+  document.getElementById("next").addEventListener("click",function(){[scA,scB].forEach(function(s){goTo(firstIdx(s)+7,true,s);});});
+  document.getElementById("hoje").addEventListener("click",function(){[scA,scB].forEach(function(s){goTo(BEFORE*7,true,s);});});
+  function clearPlan(pre,s){
+    var idx=firstIdx(s);
+    for(var j=0;j<7;j++){
+      var id=pre+iso(dateAt(idx+j));
+      [id].forEach(function(key){var keep=(memory[key]||[]).filter(function(k){return locks[key+"|"+k];});
+        delete memory[key];
+        if(keep.length)memory[key]=keep;PK.forEach(function(k){var sk=key+"|"+k;if(locks[sk])return;delete snap[sk];delete dots[sk];delete notes[sk];delete addrs[sk];});
+        paintKey(key);
+      });
+    }
+    saveMem();saveSnap();jset(DK,dots);jset(NK,notes);jset(AK,addrs);updateSums();
+  }
+  document.getElementById("clear-a").addEventListener("click",function(){clearPlan("",scA);});
+  document.getElementById("clear-b").addEventListener("click",function(){clearPlan("b:",scB);});
+
+  loadAll();build();paintAll();updateHint();
+  goTo(BEFORE*7,false,scA);goTo(BEFORE*7,false,scB);
+  updateSums();
+})();
+</script>
+</body>
+</html>
